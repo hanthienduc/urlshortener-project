@@ -48,8 +48,8 @@ app.post("/api/shorturl", function (req, res) {
     short_url: shortUrl,
   };
 
-  var query = { original_url: newData.original_url },
-    update = { original_url: originalUrl },
+  var query = { original_url: originalUrl },
+    update = { short_url: shortUrl },
     options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
   urlShortner.findOneAndUpdate(
@@ -58,24 +58,18 @@ app.post("/api/shorturl", function (req, res) {
     options,
     function (error, result) {
       if (error) return;
-      res.json({
-        original_url: result.original_url,
-        short_url: result.short_url,
-      });
+      res.json(result);
     }
   );
 });
 
 app.get("/api/shorturl/:url", function (req, res) {
   const requestParamsUrl = parseInt(req.params.url);
-  const findshortUrl = urlShortner.findOne(
-    { short_url: requestParamsUrl },
-    function (err, result) {
-      if (err) return res.json({ error: "invalid url" });
-      if (!result) return res.json({ error: "invalid url" });
-      return res.redirect(result.original_url);
-    }
-  );
+  urlShortner.findOne({ short_url: requestParamsUrl }, function (err, result) {
+    if (err) return res.json({ error: "invalid url" });
+    if (!result) return res.json({ error: "invalid url" });
+    return res.redirect(result.original_url);
+  });
 });
 
 app.listen(port, function () {
